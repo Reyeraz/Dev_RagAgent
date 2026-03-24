@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: RagAgent
+  datasource:
+    url: jdbc:postgresql://postgresql.xiaz.work:54227//agent
+    username: root
+    password: 4*hBcy3*Ao0N
+    driver-class-name: org.postgresql.Driver
+  ai:
+    openai:
+      api-key: sk-1dcce5ae3b0241fabbc14a7c9bcba27c
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      chat:
+        options:
+          model: qwen-max
+      embedding:
+        options:
+          model: qwen3-vl-embedding

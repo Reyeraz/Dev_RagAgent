@@ -1,11 +1,14 @@
 package work.xiaz.ragagent.Entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.ibatis.type.JdbcType;
 import work.xiaz.ragagent.constant.SessionEnum;
 
 import java.time.LocalDateTime;
@@ -14,6 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @Builder
+@TableName("session")
 public class Session {
 
     @TableId(type = IdType.ASSIGN_ID)

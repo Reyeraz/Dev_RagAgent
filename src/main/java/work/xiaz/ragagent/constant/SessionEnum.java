@@ -1,20 +1,20 @@
 package work.xiaz.ragagent.constant;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
 public enum SessionEnum {
-    ACTIVE(1, "活动会话"),
-    CLOSED(2, "会话已关闭");
+    ACTIVE("ACTIVE"),
+    CLOSED("CLOSED");
 
 
-
-
-    private final int code;
-    private final String description;
-    private SessionEnum(int code, String description) {
+    @EnumValue
+    @JsonValue
+    private final String code;
+    SessionEnum(String code) {
         this.code = code;
-        this.description = description;
     }
 
 }

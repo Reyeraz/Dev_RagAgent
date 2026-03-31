@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="work.xiaz.ragagent.Mapper.ChatMessageMapper">
+
+    <!-- 批量插入消息 -->
+    <insert id="insertMessageBatch">
+        INSERT INTO chat_message (
+        id,
+        session_id,
+        text_content,
+        role,
+        metadata,
+        create_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.sessionId},
+            #{item.textContent},
+            #{item.role},
+            #{item.metadata, typeHandler=work.xiaz.ragagent.Handler.JsonbTypeHandler},
+            #{item.createTime}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

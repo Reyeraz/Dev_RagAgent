@@ -2,7 +2,8 @@ package work.xiaz.ragagent.Mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import work.xiaz.ragagent.DTO.ChatMessageDTO;
+import org.apache.ibatis.annotations.Select;
+import work.xiaz.ragagent.DTO.MessageDTO;
 import work.xiaz.ragagent.Entity.ChatMessage;
 
 import java.util.List;
@@ -21,5 +22,6 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
      * @param sessionId
      * @return
      */
-    List<ChatMessageDTO> selectBySessionId(String sessionId);
+    @Select("SELECT * FROM chat_message where session_id = #{sessionId} ORDER BY create_time ASC")
+    List<MessageDTO> selectBySessionId(String sessionId);
 }

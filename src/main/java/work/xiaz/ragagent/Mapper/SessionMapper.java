@@ -3,6 +3,7 @@ package work.xiaz.ragagent.Mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 import work.xiaz.ragagent.Entity.Session;
 import work.xiaz.ragagent.VO.SessionVO;
 
@@ -15,23 +16,24 @@ public interface SessionMapper extends BaseMapper<Session> {
 
     /**
      * 被设计为一次插入多个会话记录, 可能不包括历史消息
-     * @param session
+     * @param sessions 需要插入的对话
      */
-    void InsertBatch(Session session);
-
-    //TODO 应完成
+    void insertBatch(List<Session> sessions);
 
     /**
      * 从用户 ID 中拿到会话记录
      * @param userId
      * @return
      */
+    @Select("SELECT * from session where user_id = #{userId}")
     List<SessionVO> selectByUserId(String userId);
 
     /**
-     * 根据 SessionId 删除 Session
+     * 查询用户是否持有某个会话
      * @param sessionId
+     * @param userId
+     * @return
      */
-    @Delete("DELETE from Session WHERE id = #{sessionId}")
-    void deleteBySessionId(String sessionId);
+    @Select(("SELECT * from session where id = #{sessionId} AND user_id = #{userId}"))
+    Session selectByUserIdAndSessionId(String sessionId, String userId);
 }

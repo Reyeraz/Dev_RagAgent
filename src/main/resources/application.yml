@@ -2,9 +2,9 @@ spring:
   application:
     name: RagAgent
   datasource:
-    url: jdbc:postgresql://postgresql.xiaz.work:54227//agent
+    url: jdbc:postgresql://p-c12.polars.cc:54232/agent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: 4*hBcy3*Ao0N
+    password: '4*hBcy3*Ao0N'
     driver-class-name: org.postgresql.Driver
   ai:
     openai:
@@ -12,7 +12,35 @@ spring:
       base-url: https://dashscope.aliyuncs.com/compatible-mode
       chat:
         options:
-          model: qwen-max
+            model: qwen-max
       embedding:
         options:
-          model: qwen3-vl-embedding
+          model: text-embedding-v4
+          dimensions: 1536
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+  docker:
+    compose:
+      enabled: false
+  reactor:
+    debug-agent:
+      enabled: true
+logging:
+  level:
+    org.springframework: DEBUG
+server:
+  port: 8080
+mybatis-plus:
+  type-handlers-package: work.xiaz.ragagent.Handler
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      enum-type-handler: org.apache.ibatis.type.EnumTypeHandler

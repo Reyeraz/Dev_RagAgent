@@ -3,7 +3,8 @@ package work.xiaz.ragagent.Controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import work.xiaz.ragagent.DTO.ChatMessageDTO;
+import reactor.core.publisher.Flux;
+import work.xiaz.ragagent.DTO.MessageDTO;
 import work.xiaz.ragagent.Entity.Session;
 import work.xiaz.ragagent.Service.ChatService;
 import work.xiaz.ragagent.VO.SessionVO;
@@ -18,16 +19,16 @@ public class ChatController {
 
     /**
      * 发送一条消息, 并返回大模型的一条对话
-     * @param chatMessageDTO
+     * @param messageDTO
      * @return
      */
-    @PostMapping("/{userid}/session/{sessionId}")
-    public ResponseEntity<ChatMessageDTO> sendMessage(@RequestBody ChatMessageDTO chatMessageDTO, @PathVariable("sessionId") String sessionId) {
-        ChatMessageDTO message = chatService.sendMessage(chatMessageDTO, sessionId);
+    @PostMapping(path = "/{userId}/session/{sessionId}", produces = "text/event-stream;charset=UTF-8")
+    public Flux<String> sendMessage(@RequestBody MessageDTO messageDTO, @PathVariable("userId") String userId, @PathVariable("sessionId") String sessionId) {
+        Flux<String> message = chatService.sendMessage(messageDTO, sessionId);
         if (message == null) {
-            return ResponseEntity.notFound().build();
+            throw new RuntimeException("消息为空");
         }
-        return ResponseEntity.ok(message);
+        return message;
     }
 
 
@@ -36,7 +37,7 @@ public class ChatController {
      * @param sessionId 用户的会话id
      */
     @GetMapping("/{userId}/session/{sessionId}")
-    public ResponseEntity<List<ChatMessageDTO>> getHistoryMessageBySessionId(@PathVariable("sessionId") String sessionId, @PathVariable String userId){
+    public ResponseEntity<List<MessageDTO>> getHistoryMessageBySessionId(@PathVariable("sessionId") String sessionId, @PathVariable String userId){
         // TODO 传递这个 Id 给 Service
         return ResponseEntity.ok(chatService.getHistoryMessageBySessionId(sessionId, userId));
     }
@@ -57,8 +58,8 @@ public class ChatController {
      * @return
      */
     @PostMapping("/{userId}/session")
-    public ResponseEntity<Session> createSession(@PathVariable String userId, @RequestBody(required = false) ChatMessageDTO chatMessageDTO) {
-        Session session = chatService.createSession(userId, chatMessageDTO);
+    public ResponseEntity<Session> createSession(@PathVariable String userId, @RequestBody(required = false) MessageDTO messageDTO) {
+        Session session = chatService.createSession(userId, messageDTO);
         return ResponseEntity.ok(session);
     }
 }

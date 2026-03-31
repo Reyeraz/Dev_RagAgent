@@ -1,6 +1,7 @@
 package work.xiaz.ragagent.Service;
 
-import work.xiaz.ragagent.DTO.ChatMessageDTO;
+import reactor.core.publisher.Flux;
+import work.xiaz.ragagent.DTO.MessageDTO;
 import work.xiaz.ragagent.Entity.Session;
 import work.xiaz.ragagent.VO.SessionVO;
 
@@ -14,14 +15,14 @@ public interface ChatService {
      * @param sessionId
      * @return
      */
-    List<ChatMessageDTO> getHistoryMessageBySessionId(String sessionId, String userId);
+    List<MessageDTO> getHistoryMessageBySessionId(String sessionId, String userId);
 
     /**
      * 发送一条消息, 并得到对应大模型的回应
-     * @param chatMessageDTO
+     * @param messageDTO
      * @return
      */
-    ChatMessageDTO sendMessage(ChatMessageDTO chatMessageDTO, String sessionId);
+    Flux<String> sendMessage(MessageDTO messageDTO, String sessionId);
 
     /**
      * 得到一个用户的所有历史会话
@@ -33,8 +34,8 @@ public interface ChatService {
     /**
      * 创建一个新的对话, 并可能附带有消息
      * @param userId
-     * @param chatMessageDTO
+     * @param messageDTO
      * @return
      */
-    Session createSession(String userId, ChatMessageDTO chatMessageDTO);
+    Session createSession(String userId, MessageDTO messageDTO);
 }

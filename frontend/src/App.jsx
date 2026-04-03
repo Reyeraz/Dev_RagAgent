@@ -151,80 +151,98 @@ function App() {
     setLoading(true)
 
     try {
-      // 发送消息到后端
-      const response = await axios.post(`/users/${userId}/session/${currentSession.id}`, {
-        content: messageContent,
-        type: 'USER',
-        metaData: {}
-      }, {
-        responseType: 'stream',
+      // 使用fetch API处理流式响应
+      const response = await fetch(`/users/${userId}/session/${currentSession.id}`, {
+        method: 'POST',
         headers: {
           'Accept': 'text/event-stream',
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          content: messageContent,
+          type: 'USER',
+          metaData: {}
+        })
       })
 
-      // 检查响应是否成功
-      if (!response || !response.data) {
-        throw new Error('响应数据为空')
+      if (!response.ok) {
+        throw new Error(`请求失败: ${response.status} ${response.statusText}`)
       }
 
-      // 处理流式响应
-      const stream = response.data
-      
-      // 检查stream是否有getReader方法
-      if (!stream || typeof stream.getReader !== 'function') {
-        console.error('响应数据不是有效的流:', stream)
-        // 直接显示完整响应作为消息
-        const messageContent = typeof stream === 'string' ? stream : JSON.stringify(stream)
-        setMessages(prev => [...prev, {
-          content: messageContent,
-          type: 'ASSISTANT',
-          metadata: { timestamp: new Date().toISOString() }
-        }])
-        return
+      if (!response.body) {
+        throw new Error('没有收到流式响应')
       }
 
-      const reader = stream.getReader()
+      const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let assistantMessage = ''
-
-      // 添加初始的助手消息
-      setMessages(prev => [...prev, {
-        content: '',
-        type: 'ASSISTANT',
-        metadata: { timestamp: new Date().toISOString() }
-      }])
+      let isFirstChunk = true
 
       // 读取流数据
       while (true) {
-        try {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          const chunk = decoder.decode(value, { stream: true })
-          assistantMessage += chunk
-
-          // 更新助手消息
-          setMessages(prev => {
-            const updated = [...prev]
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              content: assistantMessage
-            }
-            return updated
-          })
-        } catch (readError) {
-          console.error('读取流数据失败:', readError)
+        const { done, value } = await reader.read()
+        
+        if (done) {
+          console.log('流结束')
           break
         }
+
+        // 解码数据
+        const chunk = decoder.decode(value, { stream: true })
+        console.log('收到数据块:', JSON.stringify(chunk))
+        
+        // 处理数据块
+        const lines = chunk.split(/\r?\n/)
+        for (const line of lines) {
+          if (line.trim()) {
+            let data = line
+            // 移除data:前缀
+            if (data.startsWith('data:')) {
+              data = data.substring(5).trim()
+            }
+            
+            if (isFirstChunk) {
+              setMessages(prev => [...prev, {
+                content: data,
+                type: 'ASSISTANT',
+                metadata: { timestamp: new Date().toISOString() }
+              }])
+              isFirstChunk = false
+              assistantMessage = data
+            } else {
+              assistantMessage += data
+              setMessages(prev => {
+                const updated = [...prev]
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: assistantMessage
+                }
+                return updated
+              })
+            }
+          }
+        }
       }
+
+      // 释放锁
+      reader.releaseLock()
+      console.log('释放流锁')
     } catch (error) {
       console.error('发送消息失败:', error)
-      console.error('错误详情:', error.response?.data || error.message)
+      
+      // 构建友好的错误消息
+      let errorMsg = ''
+      if (error.name === 'AbortError') {
+        errorMsg = '请求超时，请检查网络连接或稍后重试'
+      } else if (error.message === 'Network Error') {
+        errorMsg = '网络连接异常，请检查您的网络设置'
+      } else {
+        errorMsg = `发送消息失败: ${error.message || '未知错误'}`
+      }
+      
       // 添加错误消息
       setMessages(prev => [...prev, {
-        content: `抱歉，发送消息失败: ${error.response?.data?.message || error.message || '未知错误'}`,
+        content: errorMsg,
         type: 'ASSISTANT',
         metadata: { timestamp: new Date().toISOString() }
       }])
